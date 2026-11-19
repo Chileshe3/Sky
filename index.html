@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Open Sky</title>
+  <meta name="description" content="A personal photography magazine of skies, light and landscapes.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Hanken+Grotesk:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="home">
+  <header class="bar" id="bar"></header>
+  <main>
+    <section class="hero" id="hero">
+      <div class="hero-body">
+        <h1 class="masthead" id="masthead"></h1>
+        <div class="hero-cap" id="hero-cap"></div>
+      </div>
+    </section>
+
+    <section class="intro">
+      <p class="lede" id="lede"></p>
+      <nav aria-label="Categories"><ul class="index" id="index"></ul></nav>
+    </section>
+
+    <section class="wrap" id="recent-section" hidden>
+      <div class="section-head">
+        <h2>Recently captured</h2>
+        <a href="/gallery">All photographs</a>
+      </div>
+      <div class="masonry" id="recent"></div>
+    </section>
+  </main>
+  <footer class="foot" id="foot"></footer>
+  <script type="module" src="/js/home.js"></script>
+</body>
+</html>
