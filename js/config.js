@@ -1,7 +1,7 @@
-// Fill in the two Supabase values (Project Settings > API).
-// The anon key is meant to be public; row-level security protects your data.
-export const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co';
-export const SUPABASE_ANON_KEY = 'YOUR-ANON-KEY';
+// Supabase connection. The publishable key is meant to be public;
+// row-level security protects your data.
+export const SUPABASE_URL = 'https://goqheizxqnicequxmtut.supabase.co';
+export const SUPABASE_ANON_KEY = 'sb_publishable_5oZkoVc5-GO7gECs5A2ZpQ_9AP18xmN';
 
 export const SITE = {
   name: 'Open Sky',
