@@ -1,5 +1,6 @@
-import { SITE } from './config.js';
-import { mountChrome, fetchPhotos, CATEGORIES, tile, formatDate, esc, emptyMessage } from './common.js';
+import { SITE, HOME_COUNT } from './config.js';
+import { mountChrome, fetchFeatured, fetchPage, tile, formatDate, esc, emptyMessage } from './common.js';
+import { attachLightbox } from './lightbox.js';
 
 const $ = (s) => document.querySelector(s);
 
@@ -8,8 +9,9 @@ document.title = SITE.name;
 $('#masthead').textContent = SITE.name;
 $('#lede').textContent = SITE.intro;
 
-const { photos, error } = await fetchPhotos();
-const hero = photos.find((p) => p.featured) ?? photos[0];
+// One extra photograph is fetched in case the featured one is also among the newest.
+const [featured, latest] = await Promise.all([fetchFeatured(), fetchPage({ from: 0, size: HOME_COUNT + 1 })]);
+const hero = featured ?? latest.photos[0];
 
 if (hero) {
   $('#hero').insertAdjacentHTML(
@@ -22,16 +24,13 @@ if (hero) {
     ${hero.location ? `<span>${esc(hero.location)}</span>` : ''}`;
 } else {
   $('#hero').classList.add('empty');
-  $('#hero-cap').innerHTML = `<span>${emptyMessage(error)}</span>`;
+  $('#hero-cap').innerHTML = `<span>${emptyMessage(latest.error)}</span>`;
 }
 
-$('#index').innerHTML = CATEGORIES.map((c) => {
-  const n = photos.filter((p) => p.category === c.id).length;
-  return `<li><a href="/gallery?c=${c.id}"><span>${c.icon} ${c.label}</span><span class="count">${n}</span></a></li>`;
-}).join('');
-
-const recent = photos.filter((p) => p !== hero).slice(0, 9);
+const recent = latest.photos.filter((p) => p.id !== hero?.id).slice(0, HOME_COUNT);
 if (recent.length) {
-  $('#recent').innerHTML = recent.map(tile).join('');
+  const grid = $('#recent');
+  grid.innerHTML = recent.map(tile).join('');
+  attachLightbox(grid, () => recent);
   $('#recent-section').hidden = false;
 }

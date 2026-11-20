@@ -13,24 +13,18 @@
   <header class="bar" id="bar"></header>
   <main>
     <div class="page-head">
-      <h1>Gallery</h1>
-      <div class="filters" id="filters" role="group" aria-label="Filter by category"></div>
+      <h1 id="title">Gallery</h1>
     </div>
     <div class="wrap">
       <p class="note" id="note" hidden></p>
-      <div class="masonry" id="grid"></div>
+      <div class="grid" id="grid"></div>
+      <div class="more-row">
+        <button class="btn" id="more" type="button" hidden>Load more</button>
+        <p class="end" id="end" hidden>That's every photograph.</p>
+      </div>
     </div>
   </main>
   <footer class="foot" id="foot"></footer>
-
-  <div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Photograph viewer">
-    <button class="lb-close" id="lb-close" aria-label="Close viewer">×</button>
-    <button class="lb-nav prev" id="lb-prev" aria-label="Previous photograph">‹</button>
-    <figure><img id="lb-img" alt=""></figure>
-    <button class="lb-nav next" id="lb-next" aria-label="Next photograph">›</button>
-    <div class="lb-cap" id="lb-cap"></div>
-  </div>
-
   <script type="module" src="/js/gallery.js"></script>
 </body>
 </html>

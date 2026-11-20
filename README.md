@@ -13,7 +13,7 @@ A personal photography site: static HTML/CSS/JS, Supabase for photos and login, 
 
 **2. Configure**
 
-Open `js/config.js` and paste in the URL and anon key. Change `SITE.name` and `SITE.intro` to your own.
+Open `js/config.js` and paste in the URL and anon key. Change `SITE.name`, `SITE.tagline` and `SITE.intro` to your own, and add your contact email to `SITE.email`. The email then appears in the footer and on the privacy and terms pages.
 
 **3. Try it locally**
 
@@ -35,6 +35,8 @@ Open the address it prints. Use a server rather than double-clicking the files, 
 | Home | `/` |
 | Gallery with category filters and full-screen viewer | `/gallery` |
 | One photograph | `/photo?id=...` |
+| Privacy policy | `/privacy` |
+| Terms of use | `/terms` |
 | Private upload page | `/admin` |
 
 On `/admin` the browser resizes each photo to a 2560px version and a 900px thumbnail, uploads both to Supabase Storage, and saves the title, description, category, date, location and public URLs to the database. The photo then appears in the gallery with no code changes. Change the sizes in `js/config.js`.
@@ -42,4 +44,3 @@ On `/admin` the browser resizes each photo to a 2560px version and a 900px thumb
 `/admin` is a public address but does nothing without your login: the database rules only allow a signed-in user to add, change or delete.
 
 The free Supabase plan includes 1 GB of storage, which is roughly a thousand photos at these sizes.
-# Sky

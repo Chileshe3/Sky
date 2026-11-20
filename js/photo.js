@@ -2,7 +2,7 @@ import { SITE } from './config.js';
 import { supabase, mountChrome, category, formatDate, esc, emptyMessage } from './common.js';
 
 const main = document.querySelector('#main');
-mountChrome('gallery');
+mountChrome('photo');
 
 function missing(html) {
   main.innerHTML = `<div class="wrap"><p class="note">${html}</p></div>`;

@@ -44,3 +44,8 @@ create policy "Owner can upload files" on storage.objects
   for insert to authenticated with check (bucket_id = 'photos');
 create policy "Owner can delete files" on storage.objects
   for delete to authenticated using (bucket_id = 'photos');
+
+-- Table permissions for the website's two roles (row-level security above still applies).
+grant usage on schema public to anon, authenticated;
+grant select on public.photos to anon, authenticated;
+grant insert, update, delete on public.photos to authenticated;
