@@ -11,7 +11,7 @@ function say(msg) {
   toast.textContent = msg;
   toast.classList.add('show');
   clearTimeout(say.t);
-  say.t = setTimeout(() => toast.classList.remove('show'), 3500);
+  say.t = setTimeout(() => toast.classList.remove('show'), 4000);
 }
 
 /* Image helpers: decode once, then draw at two sizes as JPEG. */
@@ -39,10 +39,15 @@ async function resize(img, max, quality) {
 }
 
 const today = () => new Date().toLocaleDateString('en-CA');
+const dateOf = (file) => (file.lastModified ? new Date(file.lastModified).toLocaleDateString('en-CA') : today());
+const catOptions = (selected) =>
+  CATEGORIES.map((c) => `<option value="${c.id}"${c.id === selected ? ' selected' : ''}>${c.icon} ${c.label}</option>`).join('');
+// Used when a title is left blank, e.g. "Sunsets, 19 November 2026".
+const autoTitle = (cat, date) => `${category(cat)?.label ?? 'Photograph'}, ${formatDate(date)}`;
 
 /* Views */
 function configView() {
-  app.innerHTML = `<h1>Admin</h1><p class="note">Add your Supabase URL and anon key to js/config.js first.</p>`;
+  app.innerHTML = `<h1>Admin</h1><p class="note">Add your Supabase URL and key to js/config.js first.</p>`;
 }
 
 function loginView() {
@@ -62,62 +67,98 @@ function loginView() {
   });
 }
 
+let picks = []; // photographs chosen but not yet published: { file, url, li }
+
 function uploadView() {
+  picks = [];
   app.innerHTML = `
     <div class="top-actions">
-      <h1>Publish a photograph</h1>
+      <h1>Publish photographs</h1>
       <button class="btn ghost small" id="signout" type="button">Sign out</button>
     </div>
     <form class="stack" id="upload">
-      <label>Photograph<input type="file" name="file" accept="image/*" required></label>
-      <img class="preview" id="preview" alt="" hidden>
-      <label>Title<input type="text" name="title" maxlength="120" required></label>
-      <label>Description<textarea name="description"></textarea></label>
-      <div class="row">
-        <label>Category
-          <select name="category" required>
-            ${CATEGORIES.map((c) => `<option value="${c.id}">${c.icon} ${c.label}</option>`).join('')}
-          </select>
-        </label>
-        <label>Date captured<input type="date" name="captured_on" value="${today()}" required></label>
-      </div>
-      <label>Location (optional)<input type="text" name="location" maxlength="120"></label>
-      <label class="check"><input type="checkbox" name="featured"> Feature on the homepage</label>
-      <button class="btn" type="submit">Publish</button>
+      <label>Choose photographs<input type="file" name="files" accept="image/*" multiple></label>
+      <label>Location for all (optional)<input type="text" name="location" maxlength="120"></label>
+      <ul class="picks" id="picks"></ul>
+      <button class="btn" type="submit" id="publish" hidden>Publish</button>
     </form>
     <h2>Published photographs</h2>
     <ul class="manage" id="manage"></ul>`;
 
   const form = document.querySelector('#upload');
-  const preview = document.querySelector('#preview');
-
-  form.file.addEventListener('change', () => {
-    const file = form.file.files[0];
-    if (!file) { preview.hidden = true; return; }
-    preview.src = URL.createObjectURL(file);
-    preview.hidden = false;
-    if (file.lastModified) form.captured_on.value = new Date(file.lastModified).toLocaleDateString('en-CA');
+  form.files.addEventListener('change', () => {
+    addFiles([...form.files.files]);
+    form.files.value = ''; // so the same photograph can be chosen again later
   });
-
   form.addEventListener('submit', publish);
+  document.querySelector('#picks').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-remove]');
+    if (!btn) return;
+    removePick(picks.find((p) => p.li === btn.closest('li')));
+  });
   document.querySelector('#signout').addEventListener('click', () => supabase.auth.signOut());
-  document.querySelector('#manage').addEventListener('click', manage);
+
+  const list = document.querySelector('#manage');
+  list.addEventListener('click', manage);
+  list.addEventListener('submit', saveEdit);
   loadList();
 }
 
-/* Publish */
-async function publish(e) {
-  e.preventDefault();
-  const form = e.target;
-  const file = form.file.files[0];
-  if (!file) return say('Choose a photograph first.');
+/* Photographs waiting to be published */
+function addFiles(files) {
+  const ul = document.querySelector('#picks');
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) continue;
+    const url = URL.createObjectURL(file);
+    const lastCat = picks.length ? picks[picks.length - 1].li.querySelector('[name=category]').value : 'sunsets';
+    const li = document.createElement('li');
+    li.className = 'pick';
+    li.innerHTML = `
+      <img src="${url}" alt="">
+      <div class="fields">
+        <label>Title<input type="text" name="title" maxlength="120"></label>
+        <label>Description<textarea name="description"></textarea></label>
+        <div class="row">
+          <label>Category<select name="category">${catOptions(lastCat)}</select></label>
+          <label>Date captured<input type="date" name="captured_on" value="${dateOf(file)}" required></label>
+        </div>
+        <label class="check"><input type="checkbox" name="featured"> Feature on the homepage</label>
+        <p class="status" role="alert"></p>
+        <button class="btn ghost small" data-remove type="button">Remove</button>
+      </div>`;
+    const hint = () => {
+      li.querySelector('[name=title]').placeholder = autoTitle(
+        li.querySelector('[name=category]').value,
+        li.querySelector('[name=captured_on]').value
+      );
+    };
+    li.querySelector('[name=category]').addEventListener('change', hint);
+    li.querySelector('[name=captured_on]').addEventListener('change', hint);
+    hint();
+    ul.append(li);
+    picks.push({ file, url, li });
+  }
+  updateButton();
+}
 
-  const btn = form.querySelector('button[type=submit]');
-  btn.disabled = true;
-  btn.textContent = 'Publishing…';
-  const uploaded = [];
+function removePick(pick) {
+  if (!pick) return;
+  URL.revokeObjectURL(pick.url);
+  pick.li.remove();
+  picks = picks.filter((p) => p !== pick);
+  updateButton();
+}
+
+function updateButton() {
+  const btn = document.querySelector('#publish');
+  btn.hidden = !picks.length;
+  btn.textContent = picks.length > 1 ? `Publish ${picks.length} photographs` : 'Publish photograph';
+}
+
+/* Publish, one photograph at a time so a phone never holds several large images at once */
+async function publishOne({ file, li }, location) {
   const bucket = supabase.storage.from('photos');
-
+  const uploaded = [];
   try {
     const img = await loadImage(file);
     const [full, thumb] = await Promise.all([resize(img, FULL_MAX, 0.86), resize(img, THUMB_MAX, 0.8)]);
@@ -131,45 +172,68 @@ async function publish(e) {
       uploaded.push(path);
     }
 
-    const f = new FormData(form);
+    const get = (name) => li.querySelector(`[name=${name}]`);
+    const cat = get('category').value;
+    const date = get('captured_on').value;
     const { error } = await supabase.from('photos').insert({
-      title: f.get('title').trim(),
-      description: f.get('description').trim() || null,
-      category: f.get('category'),
-      captured_on: f.get('captured_on'),
-      location: f.get('location').trim() || null,
+      title: get('title').value.trim() || autoTitle(cat, date),
+      description: get('description').value.trim() || null,
+      category: cat,
+      captured_on: date,
+      location,
       image_path: fullPath,
       thumb_path: thumbPath,
       image_url: bucket.getPublicUrl(fullPath).data.publicUrl,
       thumb_url: bucket.getPublicUrl(thumbPath).data.publicUrl,
       width: full.w,
       height: full.h,
-      featured: form.featured.checked,
+      featured: get('featured').checked,
     });
     if (error) throw error;
-
-    form.reset();
-    form.captured_on.value = today();
-    document.querySelector('#preview').hidden = true;
-    say('Published.');
-    loadList();
   } catch (err) {
     if (uploaded.length) await bucket.remove(uploaded);
-    say(`Could not publish: ${err.message}`);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Publish';
+    throw err;
   }
 }
 
-/* Manage existing photographs */
+async function publish(e) {
+  e.preventDefault();
+  if (!picks.length) return say('Choose a photograph first.');
+
+  const form = e.target;
+  const btn = document.querySelector('#publish');
+  const location = form.location.value.trim() || null;
+  const total = picks.length;
+  let done = 0;
+  let n = 0;
+  btn.disabled = true;
+
+  for (const pick of [...picks]) {
+    n++;
+    btn.textContent = total > 1 ? `Publishing ${n} of ${total}…` : 'Publishing…';
+    const status = pick.li.querySelector('.status');
+    status.textContent = '';
+    try {
+      await publishOne(pick, location);
+      removePick(pick);
+      done++;
+    } catch (err) {
+      status.textContent = `Could not publish: ${err.message}`;
+    }
+  }
+
+  btn.disabled = false;
+  updateButton();
+  if (done) loadList();
+  if (done === total) say(total === 1 ? 'Published.' : `Published ${total} photographs.`);
+  else say(`Published ${done} of ${total}. The ones that failed are marked below.`);
+}
+
+/* Published photographs: edit, feature, delete */
 let items = [];
 
-async function loadList() {
-  const { data, error } = await supabase.from('photos').select('*').order('created_at', { ascending: false });
+function renderList() {
   const ul = document.querySelector('#manage');
-  if (error) { ul.innerHTML = '<li>The list could not be loaded. Refresh the page.</li>'; return; }
-  items = data;
   if (!items.length) { ul.innerHTML = '<li class="meta">Nothing published yet.</li>'; return; }
   ul.innerHTML = items.map((p) => `
     <li data-id="${p.id}">
@@ -178,6 +242,7 @@ async function loadList() {
         <strong>${esc(p.title)}</strong>
         <div class="meta">${category(p.category)?.label ?? ''}, ${formatDate(p.captured_on)}${p.featured ? ', featured' : ''}</div>
         <div class="actions">
+          <button class="btn ghost small" data-act="edit" type="button">Edit</button>
           <button class="btn ghost small" data-act="feature" type="button">${p.featured ? 'Remove from homepage' : 'Feature on homepage'}</button>
           <button class="btn ghost small" data-act="delete" type="button">Delete</button>
         </div>
@@ -185,12 +250,65 @@ async function loadList() {
     </li>`).join('');
 }
 
+async function loadList() {
+  const { data, error } = await supabase.from('photos').select('*').order('created_at', { ascending: false });
+  if (error) { document.querySelector('#manage').innerHTML = '<li>The list could not be loaded. Refresh the page.</li>'; return; }
+  items = data;
+  renderList();
+}
+
+function editRow(li, p) {
+  li.classList.add('editing');
+  li.innerHTML = `
+    <form class="stack">
+      <label>Title<input type="text" name="title" maxlength="120" required value="${esc(p.title)}"></label>
+      <label>Description<textarea name="description">${esc(p.description ?? '')}</textarea></label>
+      <div class="row">
+        <label>Category<select name="category">${catOptions(p.category)}</select></label>
+        <label>Date captured<input type="date" name="captured_on" value="${esc(p.captured_on)}" required></label>
+      </div>
+      <label>Location (optional)<input type="text" name="location" maxlength="120" value="${esc(p.location ?? '')}"></label>
+      <label class="check"><input type="checkbox" name="featured"${p.featured ? ' checked' : ''}> Feature on the homepage</label>
+      <div class="actions">
+        <button class="btn small" type="submit">Save changes</button>
+        <button class="btn ghost small" type="button" data-act="cancel">Cancel</button>
+      </div>
+    </form>`;
+  li.querySelector('[name=title]').focus();
+}
+
+async function saveEdit(e) {
+  e.preventDefault();
+  const li = e.target.closest('li');
+  const f = new FormData(e.target);
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true;
+  const { error } = await supabase.from('photos').update({
+    title: f.get('title').trim(),
+    description: f.get('description').trim() || null,
+    category: f.get('category'),
+    captured_on: f.get('captured_on'),
+    location: f.get('location').trim() || null,
+    featured: f.get('featured') === 'on',
+  }).eq('id', li.dataset.id);
+  btn.disabled = false;
+  if (error) return say(`Could not save: ${error.message}`);
+  say('Saved.');
+  loadList();
+}
+
 async function manage(e) {
   const btn = e.target.closest('button[data-act]');
   if (!btn) return;
-  const p = items.find((x) => x.id === btn.closest('li').dataset.id);
+  if (btn.dataset.act === 'cancel') return renderList();
+
+  const li = btn.closest('li');
+  const p = items.find((x) => x.id === li.dataset.id);
   if (!p) return;
 
+  if (btn.dataset.act === 'edit') {
+    return editRow(li, p);
+  }
   if (btn.dataset.act === 'feature') {
     const { error } = await supabase.from('photos').update({ featured: !p.featured }).eq('id', p.id);
     if (error) return say(`Could not update: ${error.message}`);

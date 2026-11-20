@@ -35,6 +35,7 @@ Open the address it prints. Use a server rather than double-clicking the files, 
 | Home | `/` |
 | Gallery with category filters and full-screen viewer | `/gallery` |
 | One photograph | `/photo?id=...` |
+| About (edit the text in `about.html`) | `/about` |
 | Privacy policy | `/privacy` |
 | Terms of use | `/terms` |
 | Private upload page | `/admin` |

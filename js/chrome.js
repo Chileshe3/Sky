@@ -42,6 +42,7 @@ export function mountChrome(current) {
           <ul class="menu-main">
             <li><a href="/"${here('home')}>Home</a></li>
             <li><a href="/gallery"${here('gallery')}>Gallery</a></li>
+            <li><a href="/about"${here('about')}>About</a></li>
           </ul>
           <ul class="menu-cats">${catLinks(true)}</ul>
         </nav>
@@ -85,7 +86,7 @@ export function mountChrome(current) {
       <nav class="foot-cols" aria-label="Footer">
         <div>
           <h2>Browse</h2>
-          <ul><li><a href="/">Home</a></li><li><a href="/gallery">Gallery</a></li></ul>
+          <ul><li><a href="/">Home</a></li><li><a href="/gallery">Gallery</a></li><li><a href="/about">About</a></li></ul>
         </div>
         <div>
           <h2>Categories</h2>
