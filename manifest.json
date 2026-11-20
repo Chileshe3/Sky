@@ -1,0 +1,15 @@
+{
+  "name": "Open Sky Admin",
+  "short_name": "Sky Admin",
+  "description": "Publish and manage photographs on Open Sky.",
+  "start_url": "/admin",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#e8ebec",
+  "theme_color": "#e8ebec",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

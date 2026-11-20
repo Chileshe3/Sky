@@ -387,6 +387,12 @@ textarea { min-height: 6rem; resize: vertical; }
 .manage li { display: grid; grid-template-columns: 4.5rem 1fr; gap: 0.9rem; align-items: center; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(24, 32, 44, 0.16); }
 .manage img { width: 4.5rem; height: 4.5rem; object-fit: cover; border-radius: 4px; }
 .manage li.editing { display: block; }
+.stats { display: flex; flex-wrap: wrap; gap: 0.75rem 2.5rem; margin-bottom: 0.75rem; }
+.stats strong { display: block; font: 500 2.25rem/1 var(--serif); letter-spacing: -0.02em; }
+.stats span { color: var(--dusk); }
+.narrow .meta { color: var(--dusk); font-size: 0.95rem; }
+.top { padding-left: 1.25rem; margin-top: 0.5rem; }
+.top li { margin-bottom: 0.35rem; }
 .manage .meta { color: var(--dusk); font-size: 0.95rem; }
 .manage .actions { display: flex; gap: 0.5rem; margin-top: 0.4rem; flex-wrap: wrap; }
 .toast {

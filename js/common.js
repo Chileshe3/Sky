@@ -39,6 +39,24 @@ export async function fetchFeatured() {
   return data ?? null;
 }
 
+// Adds one to the view count for a page: 'home', 'gallery' or 'photo:<id>'.
+// Skips local testing, your own visits while you are signed in, and repeat views
+// of the same page in the same browser tab. It can never break the page.
+export async function track(key) {
+  if (!supabase || ['localhost', '127.0.0.1'].includes(location.hostname)) return;
+  try {
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem(`seen:${key}`) === '1';
+      sessionStorage.setItem(`seen:${key}`, '1');
+    } catch { /* storage blocked: count anyway */ }
+    if (seen) return;
+    const { data } = await supabase.auth.getSession();
+    if (data?.session) return;
+    await supabase.rpc('record_view', { p_key: key });
+  } catch { /* ignore */ }
+}
+
 export function emptyMessage(error) {
   if (error === 'not-configured') return 'Add your Supabase URL and key to js/config.js to connect the gallery.';
   if (error === 'failed') return 'The photographs could not be loaded. Refresh the page to try again.';

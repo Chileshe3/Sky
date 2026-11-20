@@ -82,6 +82,8 @@ function uploadView() {
       <ul class="picks" id="picks"></ul>
       <button class="btn" type="submit" id="publish" hidden>Publish</button>
     </form>
+    <h2>Views</h2>
+    <div id="views"><p class="meta">Loading…</p></div>
     <h2>Published photographs</h2>
     <ul class="manage" id="manage"></ul>`;
 
@@ -101,7 +103,7 @@ function uploadView() {
   const list = document.querySelector('#manage');
   list.addEventListener('click', manage);
   list.addEventListener('submit', saveEdit);
-  loadList();
+  loadList().then(loadViews);
 }
 
 /* Photographs waiting to be published */
@@ -229,6 +231,37 @@ async function publish(e) {
   else say(`Published ${done} of ${total}. The ones that failed are marked below.`);
 }
 
+/* Views: totals from the page_views table (needs supabase/views.sql run once) */
+async function loadViews() {
+  const box = document.querySelector('#views');
+  if (!box) return;
+  const daysAgo = (n) => new Date(Date.now() - n * 864e5).toLocaleDateString('en-CA');
+  const { data, error } = await supabase.from('page_views').select('day,key,views').gte('day', daysAgo(29));
+  if (error) {
+    box.innerHTML = '<p class="meta">Views are not set up yet. Run supabase/views.sql in the Supabase SQL Editor.</p>';
+    return;
+  }
+  const sum = (rows) => rows.reduce((n, r) => n + r.views, 0);
+  const only = (key) => sum(data.filter((r) => r.key === key));
+  const perPhoto = {};
+  for (const r of data) {
+    if (r.key.startsWith('photo:')) perPhoto[r.key.slice(6)] = (perPhoto[r.key.slice(6)] ?? 0) + r.views;
+  }
+  const top = items
+    .filter((p) => perPhoto[p.id])
+    .sort((a, b) => perPhoto[b.id] - perPhoto[a.id])
+    .slice(0, 5);
+
+  box.innerHTML = `
+    <div class="stats">
+      <div><strong>${sum(data.filter((r) => r.day >= daysAgo(6)))}</strong><span>views in 7 days</span></div>
+      <div><strong>${sum(data)}</strong><span>views in 30 days</span></div>
+    </div>
+    <p class="meta">Last 30 days: homepage ${only('home')}, gallery ${only('gallery')}, photographs ${Object.values(perPhoto).reduce((a, b) => a + b, 0)}. Repeat views in one browser tab count once, and your own visits are not counted while you are signed in.</p>
+    ${top.length ? `<p><strong>Most viewed photographs</strong></p>
+    <ol class="top">${top.map((p) => `<li><a href="/photo?id=${p.id}">${esc(p.title)}</a> <span class="meta">${perPhoto[p.id]} views</span></li>`).join('')}</ol>` : ''}`;
+}
+
 /* Published photographs: edit, feature, delete */
 let items = [];
 
@@ -324,6 +357,9 @@ async function manage(e) {
 }
 
 /* Start */
+// Lets the phone offer to install this page as an app.
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+
 if (!configured) {
   configView();
 } else {

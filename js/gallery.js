@@ -1,5 +1,5 @@
 import { SITE, PAGE_SIZE } from './config.js';
-import { mountChrome, fetchPage, category, tile, emptyMessage } from './common.js';
+import { mountChrome, fetchPage, category, tile, emptyMessage, track } from './common.js';
 import { attachLightbox } from './lightbox.js';
 
 const $ = (s) => document.querySelector(s);
@@ -9,6 +9,7 @@ const name = cat ? cat.label : 'Gallery';
 
 mountChrome(cat ? cat.id : 'gallery');
 document.title = `${name} – ${SITE.name}`;
+track('gallery');
 $('#title').textContent = cat ? `${cat.icon} ${cat.label}` : 'Gallery';
 
 const grid = $('#grid');

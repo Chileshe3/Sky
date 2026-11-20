@@ -1,10 +1,11 @@
 import { SITE, HOME_COUNT } from './config.js';
-import { mountChrome, fetchFeatured, fetchPage, tile, formatDate, esc, emptyMessage } from './common.js';
+import { mountChrome, fetchFeatured, fetchPage, tile, formatDate, esc, emptyMessage, track } from './common.js';
 import { attachLightbox } from './lightbox.js';
 
 const $ = (s) => document.querySelector(s);
 
 mountChrome('home');
+track('home');
 document.title = SITE.name;
 $('#masthead').textContent = SITE.name;
 $('#lede').textContent = SITE.intro;

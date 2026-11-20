@@ -1,4 +1,4 @@
-import { esc, formatDate } from './common.js';
+import { esc, formatDate, track } from './common.js';
 
 // Full-screen viewer for the tiles inside `grid`.
 // getList() returns the photographs in tile order, so it can grow as more load.
@@ -30,6 +30,7 @@ export function attachLightbox(grid, getList) {
     idx = (i + list.length) % list.length;
     const p = list[idx];
     const t = ++token;
+    track(`photo:${p.id}`);
     img.classList.add('swap');
     setTimeout(() => {
       if (t !== token) return;

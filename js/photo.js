@@ -1,5 +1,5 @@
 import { SITE } from './config.js';
-import { supabase, mountChrome, category, formatDate, esc, emptyMessage } from './common.js';
+import { supabase, mountChrome, category, formatDate, esc, emptyMessage, track } from './common.js';
 
 const main = document.querySelector('#main');
 mountChrome('photo');
@@ -32,6 +32,7 @@ if (!supabase) {
     missing('That photograph is not here. It may have been removed. <a href="/gallery">Browse the gallery</a>.');
   } else {
     document.title = `${p.title} – ${SITE.name}`;
+    track(`photo:${p.id}`);
     const cat = category(p.category);
     const ids = (all.data ?? []).map((x) => x.id);
     const i = ids.indexOf(p.id);
