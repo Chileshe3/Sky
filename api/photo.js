@@ -49,9 +49,10 @@ export default async function handler(req, res) {
 
   const url = `${origin(req)}/photo?id=${p.id}`;
   const cat = category(p.category);
+  // Used when a photograph has no description. It avoids repeating the title, which already shows beside it.
   const summary = clip(
     p.description ||
-      `${p.title}${p.location ? `, ${p.location}` : ''}. ${cat ? cat.label : 'Photograph'}, photographed on ${fmtDate(p.captured_on)}.`,
+      `Captured on ${fmtDate(p.captured_on)}${p.location ? ` in ${p.location}` : ''}.${cat ? ` Part of the ${cat.label} collection on ${SITE.name}.` : ''}`,
     160
   );
 
