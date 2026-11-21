@@ -6,7 +6,7 @@ const $ = (s) => document.querySelector(s);
 
 mountChrome('home');
 track('home');
-document.title = SITE.name;
+document.title = `${SITE.name} – sunset, cloud and landscape photography`;
 $('#masthead').textContent = SITE.name;
 $('#lede').textContent = SITE.intro;
 

@@ -293,7 +293,7 @@ body.dark .note a { color: var(--glow); }
 
 /* Photograph page */
 .stage { padding: 0 var(--gutter); display: flex; justify-content: center; }
-.stage img { width: auto; max-height: calc(100svh - 7rem); object-fit: contain; }
+.stage img { width: auto; height: auto; max-height: calc(100svh - 7rem); object-fit: contain; }
 .detail {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);

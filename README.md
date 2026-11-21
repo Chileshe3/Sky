@@ -42,6 +42,15 @@ Open the address it prints. Use a server rather than double-clicking the files, 
 
 On `/admin` the browser resizes each photo to a 2560px version and a 900px thumbnail, uploads both to Supabase Storage, and saves the title, description, category, date, location and public URLs to the database. The photo then appears in the gallery with no code changes. Change the sizes in `js/config.js`.
 
+**Search engines and link previews.** Each photograph page is built on the server (`api/photo.js`) so Google and WhatsApp see its title, description and image at once. `/sitemap.xml` lists every page and photograph and updates itself, and `/robots.txt` points to it. After deploying:
+1. Open Google Search Console and add your site address. Verify it (the HTML tag option works: paste the tag into the `<head>` of `index.html`).
+2. Under Sitemaps, submit `sitemap.xml`. Under URL inspection, request indexing of the homepage.
+3. Do the same in Bing Webmaster Tools (it can import from Search Console).
+
+If you later add a custom domain, redirect the `vercel.app` address to it in the Vercel domain settings so the two do not compete.
+
+The photograph page only works on Vercel (or with `npx vercel dev`). A plain local file server such as `npx serve` shows a 404 for `/photo`.
+
 **Install `/admin` as a phone app.** Open `/admin` in Chrome on your phone, then use the menu > Install app (or Add to home screen). It opens full-screen with its own icon.
 
 **Views.** Run `supabase/views.sql` once in the Supabase SQL Editor. The site then counts views of the homepage, the gallery and each photograph (a total per page per day, nothing personal), and the Views panel on `/admin` shows the last 7 and 30 days and your most viewed photographs.
